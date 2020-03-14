@@ -105,21 +105,24 @@ class TionAPI {
       });
   }
 
-  getZones(name, guid) {
+  getZones({ names = [], guids = [] }) {
     return this.getData()
       .then((data) => {
         const { zones = [] } = data;
-        return zones.filter((z) => (guid && z.guid === guid) || (name && z.name === name));
+        return zones.filter((z) => guids.indexOf(z.guid) >= 0
+          || names.indexOf(z.name) >= 0);
       });
   }
 
-  getDevices(name, guid) {
+  getDevices({ names = [], guids = [], types = [] }) {
     return this.getData()
       .then((data) => {
         const { zones = [] } = data;
         const devices = [];
         zones.forEach((z) => {
-          const found = z.devices.filter((d) => d.guid === guid || d.name === name);
+          const found = z.devices.filter((d) => guids.indexOf(d.guid) >= 0
+            || names.indexOf(d.name) >= 0
+            || types.indexOf(d.type) >= 0);
           devices.push(...found);
         });
         return devices;

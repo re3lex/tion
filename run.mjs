@@ -14,7 +14,7 @@ if (fs.existsSync(authFile)) {
 }
 const api = new TionAPI({ email, password, authKey });
 
-api.getDevices('MagicAir')
+api.getDevices({ type: 'breezer3' })
   .then((devices) => {
     const [d] = devices;
     console.log(d.data.co2);
