@@ -2,7 +2,7 @@
   "name": "tion",
   "version": "1.0.0",
   "description": "",
-  "main": "run.mjs",
+  "main": "src/TionAPI.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

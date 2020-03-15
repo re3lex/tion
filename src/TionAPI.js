@@ -1,5 +1,3 @@
-// const fs = require('fs');
-
 import axios from 'axios';
 import qs from 'querystring';
 
