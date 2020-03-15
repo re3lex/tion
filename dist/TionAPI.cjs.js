@@ -5,9 +5,6 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var axios = _interopDefault(require('axios'));
 var qs = _interopDefault(require('querystring'));
 
-// const fs = require('fs');
-
-
 class TionAPI {
   constructor(cfg) {
     this.email = cfg.email;

@@ -1,9 +1,6 @@
 import axios from 'axios';
 import qs from 'querystring';
 
-// const fs = require('fs');
-
-
 class TionAPI {
   constructor(cfg) {
     this.email = cfg.email;
