@@ -2,22 +2,33 @@
   "name": "tion",
   "version": "1.0.0",
   "description": "",
-  "main": "src/TionAPI.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "type": "module",
   "author": "",
   "license": "ISC",
+  "main": "dist/TionAPI.cjs.js",
+  "module": "dist/TionAPI.esm.js",
+  "browser": "dist/TionAPI.umd.js",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "node test/test.js",
+    "pretest": "npm run build"
+  },
   "dependencies": {
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
     "querystring": "^0.2.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.1",
+    "@rollup/plugin-json": "^4.0.2",
+    "@rollup/plugin-node-resolve": "^7.0.0",
     "eslint": "^6.8.0",
-    "minimist": ">=1.2.2",
     "eslint-config-airbnb-base": "^14.1.0",
-    "eslint-plugin-import": "^2.20.1"
-  }
+    "eslint-plugin-import": "^2.20.1",
+    "minimist": ">=1.2.2",
+    "rollup": "^1.29.0"
+  },
+  "files": [
+    "dist"
+  ]
 }
