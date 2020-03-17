@@ -1,1 +1,130 @@
-import t from"axios";import e from"querystring";export default class{constructor(t){this.email=t.email,this.password=t.password,this.authorization=t.authKey,this.minUpdateInterval=t.minUpdateIntervalSec||10,this.lastUpdate=0}doAuthorization(){if(this.authorization)return Promise.resolve(this.authorization);const i={username:this.email,password:this.password,client_id:"cd594955-f5ba-4c20-9583-5990bb29f4ef",client_secret:"syRxSrT77P",grant_type:"password"};return t.post("https://api2.magicair.tion.ru/idsrv/oauth2/token",e.stringify(i),{headers:{"Content-Type":"application/x-www-form-urlencoded"}}).then(t=>{const{status:e,data:i}=t;if(200===e){const{token_type:t,access_token:e}=i;return this.authorization=`${t} ${e}`,this.authorization}return console.error("Error on getting token",t),Promise.reject(new Error("Error on getting token"))}).catch(t=>{throw console.error("Error on getting token",t),t})}getHeaders(){return{Accept:"application/json, text/plain, */*","Accept-Encoding":"gzip, deflate","Accept-Language":"ru-RU",Authorization:this.authorization,Connection:"Keep-Alive","Content-Type":"application/json",Host:"api2.magicair.tion.ru",Origin:"https://magicair.tion.ru",Referer:"https://magicair.tion.ru/dashboard/overview","User-Agent":"Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586"}}getData(e){const{minUpdateInterval:i,lastUpdate:r}=this;return!e&&(new Date).valueOf()-r<i?Promise.resolve(this.data):this.authorization?(this.data=void 0,t.get("https://api2.magicair.tion.ru/location",{headers:this.getHeaders()}).then(t=>{const{status:e,data:i}=t;if(200===e)return[this.data]=i,this.lastUpdate=(new Date).valueOf(),Promise.resolve(this.data);if(401===e)return console.warn("Authorization is required"),this.authorization=void 0,this.doAuthorization().then(t=>t?this.getData():(console.error("Authorization failed!"),Promise.reject(new Error("Authorization failed!"))));const r=`Status code while getting data is ${e}, content:\n ${JSON.stringify(i)}!`;return console.error(r),Promise.reject(new Error(`Status code while getting data is ${e}`))})):this.doAuthorization().then(t=>t?this.getData():(console.error("Authorization failed!"),Promise.reject(new Error("Authorization failed!"))))}getZones({names:t=[],guids:e=[]}){return this.getData().then(i=>{const{zones:r=[]}=i;return r.filter(i=>e.indexOf(i.guid)>=0||t.indexOf(i.name)>=0)})}getDevices({names:t=[],guids:e=[],types:i=[]}){return this.getData().then(r=>{const{zones:o=[]}=r,a=[];return o.forEach(r=>{const o=r.devices.filter(r=>e.indexOf(r.guid)>=0||t.indexOf(r.name)>=0||i.indexOf(r.type)>=0);a.push(...o)}),a})}}
+import axios from 'axios';
+import qs from 'querystring';
+
+class TionAPI {
+  constructor(cfg) {
+    this.email = cfg.email;
+    this.password = cfg.password;
+    this.authorization = cfg.authKey;
+    this.minUpdateInterval = cfg.minUpdateIntervalSec || 10;
+    this.lastUpdate = 0;
+  }
+
+  doAuthorization() {
+    if (this.authorization) {
+      return Promise.resolve(this.authorization);
+    }
+    const requestData = {
+      username: this.email,
+      password: this.password,
+      client_id: 'cd594955-f5ba-4c20-9583-5990bb29f4ef',
+      client_secret: 'syRxSrT77P',
+      grant_type: 'password',
+    };
+    const config = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    };
+
+    return axios.post('https://api2.magicair.tion.ru/idsrv/oauth2/token', qs.stringify(requestData), config)
+      .then((resp) => {
+        const { status, data } = resp;
+        if (status === 200) {
+          const { token_type: tt, access_token: at } = data;
+          this.authorization = `${tt} ${at}`;
+          return this.authorization;
+        }
+        console.error('Error on getting token', resp);
+        return Promise.reject(new Error('Error on getting token'));
+      })
+      .catch((e) => {
+        console.error('Error on getting token', e);
+        throw e;
+      });
+  }
+
+  getHeaders() {
+    return {
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Encoding': 'gzip, deflate',
+      'Accept-Language': 'ru-RU',
+      Authorization: this.authorization,
+      Connection: 'Keep-Alive',
+      'Content-Type': 'application/json',
+      Host: 'api2.magicair.tion.ru',
+      Origin: 'https://magicair.tion.ru',
+      Referer: 'https://magicair.tion.ru/dashboard/overview',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586',
+    };
+  }
+
+  getData(force) {
+    const { minUpdateInterval, lastUpdate } = this;
+    if (!force && (new Date().valueOf() - lastUpdate < minUpdateInterval)) {
+      return Promise.resolve(this.data);
+    }
+
+    if (!this.authorization) {
+      return this.doAuthorization()
+        .then((success) => {
+          if (success) {
+            return this.getData();
+          }
+          console.error('Authorization failed!');
+          return Promise.reject(new Error('Authorization failed!'));
+        });
+    }
+    this.data = undefined;
+    return axios.get('https://api2.magicair.tion.ru/location', { headers: this.getHeaders() })
+      .then((resp) => {
+        const { status, data } = resp;
+        if (status === 200) {
+          [this.data] = data; // new Tion();
+          this.lastUpdate = new Date().valueOf();
+          return Promise.resolve(this.data);
+        }
+        if (status === 401) {
+          console.warn('Authorization is required');
+          this.authorization = undefined;
+          return this.doAuthorization()
+            .then((success) => {
+              if (success) {
+                return this.getData();
+              }
+              console.error('Authorization failed!');
+              return Promise.reject(new Error('Authorization failed!'));
+            });
+        }
+        const error = `Status code while getting data is ${status}, content:\n ${JSON.stringify(data)}!`;
+        console.error(error);
+        return Promise.reject(new Error(`Status code while getting data is ${status}`));
+      });
+  }
+
+  getZones({ names = [], guids = [] }) {
+    return this.getData()
+      .then((data) => {
+        const { zones = [] } = data;
+        return zones.filter((z) => guids.indexOf(z.guid) >= 0
+          || names.indexOf(z.name) >= 0);
+      });
+  }
+
+  getDevices({ names = [], guids = [], types = [] }) {
+    return this.getData()
+      .then((data) => {
+        const { zones = [] } = data;
+        const devices = [];
+        zones.forEach((z) => {
+          const found = z.devices.filter((d) => guids.indexOf(d.guid) >= 0
+            || names.indexOf(d.name) >= 0
+            || types.indexOf(d.type) >= 0);
+          devices.push(...found);
+        });
+        return devices;
+      });
+  }
+}
+
+export default TionAPI;
