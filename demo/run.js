@@ -10,9 +10,16 @@ let authKey;
 if (fs.existsSync(authFile)) {
   authKey = fs.readFileSync(authFile, 'utf-8');
 }
-const api = new TionAPI({ email, password, authKey });
 
-api.getDevices({ type: 'breezer3' })
+const afterAuthorization = (key) => {
+  fs.writeFileSync(authFile, key);
+};
+
+const api = new TionAPI({
+  email, password, authKey, afterAuthorization,
+});
+
+api.getDevices({ types: ['breezer3'] })
   .then((devices) => {
     const [d] = devices;
     console.log(d.data.co2);

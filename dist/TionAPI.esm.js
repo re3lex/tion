@@ -8,6 +8,7 @@ class TionAPI {
     this.authorization = cfg.authKey;
     this.minUpdateInterval = cfg.minUpdateIntervalSec || 10;
     this.lastUpdate = 0;
+    this.afterAuthorization = cfg.afterAuthorization;
   }
 
   doAuthorization() {
@@ -33,6 +34,10 @@ class TionAPI {
         if (status === 200) {
           const { token_type: tt, access_token: at } = data;
           this.authorization = `${tt} ${at}`;
+
+          if (this.afterAuthorization) {
+            this.afterAuthorization.call(undefined, this.authorization);
+          }
           return this.authorization;
         }
         console.error('Error on getting token', resp);
