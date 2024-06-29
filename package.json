@@ -14,7 +14,7 @@
     "pretest": "npm run build"
   },
   "dependencies": {
-    "axios": "^0.21.2",
+    "axios": "^0.28.0",
     "querystring": "^0.2.0"
   },
   "devDependencies": {
